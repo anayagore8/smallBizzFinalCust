@@ -1,0 +1,39 @@
+.productContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjust card size */
+  gap: 20px; /* Add gap between cards */
+}
+
+.productCard {
+  background-color: lightblue; /* Light blue background color for cards */
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.productCard h3 {
+  color: black; /* Black font color for heading */
+  background-color: #ccc; /* Grey background color for heading */
+  padding: 10px; /* Add padding to heading */
+  border-top-left-radius: 8px; /* Rounded corners for top left and right of heading */
+  border-top-right-radius: 8px;
+}
+
+.productCard img {
+  max-width: 100%; /* Ensure image does not exceed container width */
+  height: auto; /* Maintain aspect ratio */
+  display: block; /* Ensure proper spacing */
+  margin: 0 auto 10px; /* Add space below image */
+}
+
+.searchContainer {
+  text-align: center;
+  margin-bottom: 20px; /* Add space below search bar */
+}
+
+.searchInput {
+  padding: 10px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 400px; /* Limit search input width */
+}
