@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import styles from "./login.module.css";
 import { useState } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+// import jwtDecode from "jwt-decode";
 
 
 const Login = () => {
@@ -12,6 +14,7 @@ const Login = () => {
   });
   
   const [error,setError]=useState("");
+  const [username, setUsername] = useState(""); 
 
 
   const handleChange = ({currentTarget:input}) => {
@@ -21,18 +24,27 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url="http://localhost:5000/api/auth";
-      const {data:res}=await axios.post(url,data);
+      const url = "http://localhost:5000/api/auth";
+      const { data: res } = await axios.post(url, data);
       localStorage.setItem('token', res.data);
-      window.location="/welcome"
-    }
-    catch (error) {
-      if(error.response && error.response.status >= 400 && error.response.status <= 500)
-      {
+  
+      // Decode the token to get user information
+      const decodedToken = jwtDecode(res.data);
+      // console.log("User ID:", res.data);
+      console.log("User ID:", decodedToken._id);
+      console.log("Username:", decodedToken.name);
+      setUsername(decodedToken.name);
+      
+      // Redirect to welcome page
+      // window.location = "/welcome";
+    } catch (error) {
+      if (error.response && error.response.status >= 400 && error.response.status <= 500) {
         setError(error.response.data.message);
       }
     }
   }
+  
+  
 
   return(
     <div className={styles.login_container}>

@@ -10,9 +10,9 @@ const shopSchema=new mongoose.Schema({
   
 });
 
-shopSchema.methods.generateAuthToken=function(){
-    const token=jwt.sign({_id:this._id},process.env.JWTPRIVATEKEY,{expiresIn:"7d"});
-    return token;   
+shopSchema.methods.generateAuthToken = function() {
+    const token = jwt.sign({ _id: this._id, name: this.name }, process.env.JWTPRIVATEKEY, { expiresIn: "7d" });
+    return token;
 }
 
 const Customer=mongoose.model('Customers',shopSchema);
