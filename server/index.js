@@ -114,6 +114,113 @@ app.use(session({
     saveUninitialized: false
   }));
 
+
+
+  // Define schema for cart collection
+const cartSchema = new mongoose.Schema({
+    userId: mongoose.Types.ObjectId,
+    productId: mongoose.Types.ObjectId,
+    productName: String,
+    price: Number,
+    description: String,
+    count: { type: Number, default: 1 }
+});
+
+// Define model for cart collection
+const CartItem = mongoose.model('CartItem', cartSchema);
+
+// Route to add product to cart
+app.post('/add-to-cart', async (req, res) => {
+    const { userId, productId, productName, price, description } = req.body;
+    try {
+        const cartItem = new CartItem({
+            userId,
+            productId,
+            productName,
+            price,
+            description
+        });
+        await cartItem.save();
+        res.json({ message: 'Product added to cart successfully' });
+    } catch (error) {
+        console.error("Error adding product to cart:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+// Route to fetch cart items for a user
+app.get('/cart/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const cartItems = await CartItem.find({ userId });
+        res.json(cartItems);
+    } catch (error) {
+        console.error("Error fetching cart items:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+// Route to count total number of cart items for a user
+app.get('/cart/:userId/count', async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const cartItemCount = await CartItem.countDocuments({ userId });
+        res.json({ count: cartItemCount });
+    } catch (error) {
+        console.error("Error counting cart items:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+app.get('/cart/:userId/items', async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const cartItems = await CartItem.find({ userId });
+        res.json(cartItems);
+    } catch (error) {
+        console.error("Error fetching cart items:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+// Route to update the count of a cart item
+// index.js
+
+// Route to update the count of a cart item
+app.put('/cart/:itemId/count', async (req, res) => {
+    const itemId = req.params.itemId;
+    const { count } = req.body;
+    try {
+      // Find the cart item by its ID and update the count
+      const updatedItem = await CartItem.findByIdAndUpdate(itemId, { count }, { new: true });
+      if (!updatedItem) {
+        return res.status(404).json({ message: 'Cart item not found' });
+      }
+      res.json(updatedItem);
+    } catch (error) {
+      console.error("Error updating cart item count:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+  
+// Route to delete a cart item
+app.delete('/cart/:itemId', async (req, res) => {
+    const itemId = req.params.itemId;
+    try {
+        // Delete the cart item by its ID
+        const deletedItem = await CartItem.findByIdAndDelete(itemId);
+        if (!deletedItem) {
+            return res.status(404).json({ message: 'Cart item not found' });
+        }
+        res.json({ message: 'Cart item deleted successfully' });
+    } catch (error) {
+        console.error("Error deleting cart item:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+
+
 app.use("/api/shops",shopRoutes);
 app.use("/api/auth",authRoutes);
 // Start the server

@@ -2,10 +2,10 @@ import React from "react";
 import Navbar from "./components/Navbar";
 import Cardlist from "./components/Cardlist";
 
-function WelcomeScreen() {
+function WelcomeScreen({ userId }) {
   return (
     <>
-      <Navbar></Navbar>
+      <Navbar userId={userId} ></Navbar>
       <Cardlist></Cardlist>
     </>
   );

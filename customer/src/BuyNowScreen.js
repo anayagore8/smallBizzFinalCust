@@ -1,9 +1,12 @@
 // BuyNowScreen.js
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-const BuyNowScreen = () => {
+const BuyNowScreen = ({ userId }) => {
   const { productId } = useParams(); // Get productId from URL params
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,10 +37,24 @@ const BuyNowScreen = () => {
     console.log('Buy now clicked');
   };
 
-  const handleAddToCart = () => {
-    // Implement add to cart functionality
-    console.log('Add to cart clicked');
-  };
+  const handleAddToCart = async () => {
+    try {
+        const data = {
+            userId:userId, // Use props.userId to access userId
+            productId: product._id,
+            productName: product.name,
+            price: product.price,
+            description: product.description
+        };
+        await axios.post('http://localhost:5000/add-to-cart', data);
+        console.log('Product added to cart');
+        navigate('/cart');
+
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+    }
+};
+
 
   return (
     <div>

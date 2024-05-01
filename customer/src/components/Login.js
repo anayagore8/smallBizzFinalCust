@@ -4,18 +4,19 @@ import { useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 // import jwtDecode from "jwt-decode";
+import { useNavigate } from 'react-router-dom';
 
 
-const Login = () => {
+const Login = ({ handleLogin }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState({
-    // name: "", // Add the "Name" field
     email: "",
     password: "",
   });
   
-  const [error,setError]=useState("");
+  const [error, setError] = useState("");
   const [username, setUsername] = useState(""); 
-
+  // const [userId, setUserId] = useState(null);
 
   const handleChange = ({currentTarget:input}) => {
     setData({...data,[input.name]:input.value});
@@ -30,19 +31,22 @@ const Login = () => {
   
       // Decode the token to get user information
       const decodedToken = jwtDecode(res.data);
-      // console.log("User ID:", res.data);
-      console.log("User ID:", decodedToken._id);
-      console.log("Username:", decodedToken.name);
-      setUsername(decodedToken.name);
+      const userId = decodedToken._id;
       
-      // Redirect to welcome page
+      // Call the handleLogin function with userId
+      handleLogin(userId);
+
+      // Redirect to welcome page or perform any other action
       // window.location = "/welcome";
+      // Redirect to welcome page using React Router
+      navigate('/welcome');
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status <= 500) {
         setError(error.response.data.message);
       }
     }
-  }
+  };
+
   
   
 
