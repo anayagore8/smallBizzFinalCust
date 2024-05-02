@@ -6,7 +6,9 @@ const cors = require('cors'); // Import cors
 const shopRoutes=require("./router/cust");
 const authRoutes=require("./router/auth");
 const app = express();
-const session = require('express-session')
+const session = require('express-session');
+const multer = require('multer');
+const User=require('./schema/dataschema.js');
 
 // Enable CORS
 app.use(cors());
@@ -23,6 +25,30 @@ mongoose.connect('mongodb+srv://ayushgurav6:Ayush123@smallbizz.rwgr6tg.mongodb.n
     console.error("Error connecting to MongoDB:", err);
     process.exit(1);
 });
+
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads'); // Upload files to the 'uploads' directory
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname); // Generate unique filename
+    }
+});
+
+// Multer file filter to accept only image files
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true); // Accept the file
+    } else {
+        cb(new Error('Only images are allowed'), false); // Reject the file
+    }
+};
+
+// Initialize multer with the storage and fileFilter configurations
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
 
 // Define schema for shop collection
 const shopSchema = new mongoose.Schema({
@@ -91,6 +117,32 @@ app.get('/shop/:shopId/products', async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
+
+//Inserting reviews 
+app.post('/insert', upload.single('image'), async (req, res) => {
+    const shopId = req.body.shopId;
+    const shopName = req.body.shopName;
+    const review = req.body.review;
+    const image = req.file ? req.file.path : null; // Get the uploaded image path or null if no image is uploaded
+
+    const formData = new User({
+        shopId: shopId,
+        name: shopName,
+        review: review,
+        image: image // Add image path to the formData
+    });
+
+    try {
+        await formData.save();
+        console.log("Data inserted:", formData);
+        res.send("Inserted data successfully.");
+    } catch (err) {
+        console.error("Error inserting data:", err);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+
 
 app.get('/products/:productId', async (req, res) => {
     const productId = req.params.productId;
