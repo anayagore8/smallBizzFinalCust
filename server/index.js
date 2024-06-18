@@ -1,19 +1,17 @@
-// index.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // Import cors
-const shopRoutes=require("./router/cust");
-const authRoutes=require("./router/auth");
-const app = express();
+const cors = require('cors');
 const session = require('express-session');
-const multer = require('multer');
-const User=require('./schema/dataschema.js');
+const shopRoutes = require("./router/cust");
+const authRoutes = require("./router/auth");
+const User = require('./schema/dataschema.js');
 
-// Enable CORS
+const app = express();
+
 app.use(cors());
 app.options('*', cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increase limit to handle large base64 images
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://ayushgurav6:Ayush123@smallbizz.rwgr6tg.mongodb.net/test', {
@@ -26,48 +24,20 @@ mongoose.connect('mongodb+srv://ayushgurav6:Ayush123@smallbizz.rwgr6tg.mongodb.n
     process.exit(1);
 });
 
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './uploads'); // Upload files to the 'uploads' directory
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname); // Generate unique filename
-    }
-});
-
-// Multer file filter to accept only image files
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-        cb(null, true); // Accept the file
-    } else {
-        cb(new Error('Only images are allowed'), false); // Reject the file
-    }
-};
-
-// Initialize multer with the storage and fileFilter configurations
-const upload = multer({ storage: storage, fileFilter: fileFilter });
-
-
 // Define schema for shop collection
 const shopSchema = new mongoose.Schema({
     name: String,
     category: String,
-    // Add more fields as per your data structure
 });
 
-// Define model for shop collection
 const Shop = mongoose.model('Shop', shopSchema);
 
 // Define schema for product collection
 const productSchema = new mongoose.Schema({
     name: String,
-    shopId: mongoose.Types.ObjectId, // Reference to the shop ID
-    // Add more fields as per your data structure
+    shopId: mongoose.Types.ObjectId,
 });
 
-// Define model for product collection
 const Product = mongoose.model('Product', productSchema);
 
 // Fetch all data from shop collection
@@ -80,10 +50,9 @@ const fetchShops = async () => {
     }
 };
 
-// Call fetchShops to fetch data
 fetchShops();
 
-// Define a route to display all shops
+// Define routes
 app.get('/users', async (req, res) => {
     try {
         const shops = await Shop.find({});
@@ -94,7 +63,6 @@ app.get('/users', async (req, res) => {
     }
 });
 
-// Define a route to display shops by category
 app.get('/users/:category', async (req, res) => {
     const category = req.params.category;
     try {
@@ -106,7 +74,6 @@ app.get('/users/:category', async (req, res) => {
     }
 });
 
-// Modify the route to fetch products by shop ID
 app.get('/shop/:shopId/products', async (req, res) => {
     const shopId = req.params.shopId;
     try {
@@ -118,18 +85,14 @@ app.get('/shop/:shopId/products', async (req, res) => {
     }
 });
 
-//Inserting reviews 
-app.post('/insert', upload.single('image'), async (req, res) => {
-    const shopId = req.body.shopId;
-    const shopName = req.body.shopName;
-    const review = req.body.review;
-    const image = req.file ? req.file.path : null; // Get the uploaded image path or null if no image is uploaded
+app.post('/insert', async (req, res) => {
+    const { shopId, shopName, review, image } = req.body;
 
     const formData = new User({
-        shopId: shopId,
+        shopId,
         name: shopName,
-        review: review,
-        image: image // Add image path to the formData
+        review,
+        image // Save base64 image string
     });
 
     try {
@@ -141,8 +104,6 @@ app.post('/insert', upload.single('image'), async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
-
-
 
 app.get('/products/:productId', async (req, res) => {
     const productId = req.params.productId;
@@ -158,17 +119,12 @@ app.get('/products/:productId', async (req, res) => {
     }
 });
 
-
-// Add middleware for session management
 app.use(session({
-    secret: 'c6438a7fe3de5a86596e892c13994a33f7590c5228305aafae981344f059d5b5 ', // Change this to a secure random key
+    secret: 'c6438a7fe3de5a86596e892c13994a33f7590c5228305aafae981344f059d5b5',
     resave: false,
     saveUninitialized: false
-  }));
+}));
 
-
-
-  // Define schema for cart collection
 const cartSchema = new mongoose.Schema({
     userId: mongoose.Types.ObjectId,
     productId: mongoose.Types.ObjectId,
@@ -178,10 +134,8 @@ const cartSchema = new mongoose.Schema({
     count: { type: Number, default: 1 }
 });
 
-// Define model for cart collection
 const CartItem = mongoose.model('CartItem', cartSchema);
 
-// Route to add product to cart
 app.post('/add-to-cart', async (req, res) => {
     const { userId, productId, productName, price, description } = req.body;
     try {
@@ -200,7 +154,6 @@ app.post('/add-to-cart', async (req, res) => {
     }
 });
 
-// Route to fetch cart items for a user
 app.get('/cart/:userId', async (req, res) => {
     const userId = req.params.userId;
     try {
@@ -212,7 +165,6 @@ app.get('/cart/:userId', async (req, res) => {
     }
 });
 
-// Route to count total number of cart items for a user
 app.get('/cart/:userId/count', async (req, res) => {
     const userId = req.params.userId;
     try {
@@ -235,31 +187,24 @@ app.get('/cart/:userId/items', async (req, res) => {
     }
 });
 
-// Route to update the count of a cart item
-// index.js
-
-// Route to update the count of a cart item
 app.put('/cart/:itemId/count', async (req, res) => {
     const itemId = req.params.itemId;
     const { count } = req.body;
     try {
-      // Find the cart item by its ID and update the count
-      const updatedItem = await CartItem.findByIdAndUpdate(itemId, { count }, { new: true });
-      if (!updatedItem) {
-        return res.status(404).json({ message: 'Cart item not found' });
-      }
-      res.json(updatedItem);
+        const updatedItem = await CartItem.findByIdAndUpdate(itemId, { count }, { new: true });
+        if (!updatedItem) {
+            return res.status(404).json({ message: 'Cart item not found' });
+        }
+        res.json(updatedItem);
     } catch (error) {
-      console.error("Error updating cart item count:", error);
-      res.status(500).send("Internal Server Error");
+        console.error("Error updating cart item count:", error);
+        res.status(500).send("Internal Server Error");
     }
-  });
-  
-// Route to delete a cart item
+});
+
 app.delete('/cart/:itemId', async (req, res) => {
     const itemId = req.params.itemId;
     try {
-        // Delete the cart item by its ID
         const deletedItem = await CartItem.findByIdAndDelete(itemId);
         if (!deletedItem) {
             return res.status(404).json({ message: 'Cart item not found' });
@@ -271,12 +216,10 @@ app.delete('/cart/:itemId', async (req, res) => {
     }
 });
 
+app.use("/api/shops", shopRoutes);
+app.use("/api/auth", authRoutes);
 
-
-app.use("/api/shops",shopRoutes);
-app.use("/api/auth",authRoutes);
-// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log("Server is running on port ${PORT}");
 });

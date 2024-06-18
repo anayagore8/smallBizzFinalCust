@@ -7,7 +7,7 @@ function ReviewForm({ shopId }) {
   const [formData, setFormData] = useState({
     shopName: '',
     review: '',
-    image: null, // Updated to use null instead of empty string
+    image: '',
   });
 
   useEffect(() => {
@@ -21,23 +21,27 @@ function ReviewForm({ shopId }) {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    setFormData({ ...formData, image: file }); // Update formData with the selected image file
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData({ ...formData, image: reader.result }); // Update formData with the base64 encoded image
+    };
+    reader.onerror = error => {
+      console.error('Error reading file:', error);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formDataToSend = new FormData();
-    formDataToSend.append('shopId', shopId);
-    formDataToSend.append('shopName', formData.shopName);
-    formDataToSend.append('review', formData.review);
-    formDataToSend.append('image', formData.image); // Append the selected image file to formDataToSend
+    const formDataToSend = {
+      shopId: formData.shopId,
+      shopName: formData.shopName,
+      review: formData.review,
+      image: formData.image, // Send base64 encoded image
+    };
 
     try {
-      const response = await Axios.post('http://localhost:5000/insert', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await Axios.post('http://localhost:5000/insert', formDataToSend);
       console.log("Data inserted successfully:", response.data);
       alert("Data inserted successfully!");
     } catch (error) {
@@ -52,7 +56,7 @@ function ReviewForm({ shopId }) {
       <form onSubmit={handleSubmit}>
         <TextField
           name="shopName"
-          label="Shop Name"
+          label="Product Name"
           variant="outlined"
           fullWidth
           margin="normal"
@@ -76,6 +80,7 @@ function ReviewForm({ shopId }) {
           type="file"
           onChange={handleImageChange}
         />
+        {formData.image && <img src={formData.image} alt="Preview" className="preview-image" />}
         <Button type="submit" variant="contained" color="primary">Submit</Button>
       </form>
     </div>
