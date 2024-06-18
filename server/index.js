@@ -36,9 +36,26 @@ const Shop = mongoose.model('Shop', shopSchema);
 const productSchema = new mongoose.Schema({
     name: String,
     shopId: mongoose.Types.ObjectId,
+    quantity: Number,
+   
 });
 
 const Product = mongoose.model('Product', productSchema);
+
+// Define schema for buy now collection
+const buyNowSchema = new mongoose.Schema({
+    productId: mongoose.Types.ObjectId,
+    quantity: Number,
+    shopId: mongoose.Types.ObjectId,
+    orderId: String, // Add orderId
+    orderDate: Date, // Add orderDate
+    productName: String, // Add productName
+    customerId: mongoose.Types.ObjectId, // Add customerId
+    orderStatus: { type: String, default: 'pending' } // Add orderStatus with default value
+}, { collection: 'buynows' }); // Set collection name to 'buynow'
+
+// Define model for buy now collection
+const BuyNow = mongoose.model('BuyNow', buyNowSchema);
 
 // Fetch all data from shop collection
 const fetchShops = async () => {
@@ -119,11 +136,16 @@ app.get('/products/:productId', async (req, res) => {
     }
 });
 
+
+// Add middleware for session management
 app.use(session({
-    secret: 'c6438a7fe3de5a86596e892c13994a33f7590c5228305aafae981344f059d5b5',
+    secret: 'c6438a7fe3de5a86596e892c13994a33f7590c5228305aafae981344f059d5b5 ',
     resave: false,
     saveUninitialized: false
 }));
+
+
+// Define schema for cart collection
 
 const cartSchema = new mongoose.Schema({
     userId: mongoose.Types.ObjectId,
@@ -131,20 +153,27 @@ const cartSchema = new mongoose.Schema({
     productName: String,
     price: Number,
     description: String,
-    count: { type: Number, default: 1 }
+    count: { type: Number, default: 1 },
+    shopId: mongoose.Types.ObjectId, // Add shopId to match BuyNow schema
+    orderStatus: { type: String, default: 'pending' } // Add orderStatus to match BuyNow schema
 });
+
+
+
+// Define model for cart collection
 
 const CartItem = mongoose.model('CartItem', cartSchema);
 
 app.post('/add-to-cart', async (req, res) => {
-    const { userId, productId, productName, price, description } = req.body;
+    const { userId, productId, productName, price, description, shopId } = req.body; // Ensure shopId is included in the request
     try {
         const cartItem = new CartItem({
             userId,
             productId,
             productName,
             price,
-            description
+            description,
+            shopId // Include shopId in the cart item data
         });
         await cartItem.save();
         res.json({ message: 'Product added to cart successfully' });
@@ -153,6 +182,53 @@ app.post('/add-to-cart', async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 });
+
+
+
+// Route to buy a product
+app.post('/buy-now', async (req, res) => {
+    const { productId, quantity, shopId, customerId } = req.body;
+
+    try {
+        // Find the product in the database by productId
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Check if there are enough products in stock
+        if (product.quantity < quantity) {
+            return res.status(400).json({ message: 'Not enough products in stock' });
+        }
+
+        // Reduce the product quantity by the purchased quantity
+        product.quantity -= quantity;
+
+        // Save the updated product
+        await product.save();
+
+        // Add the purchase to the buy now collection
+        const buyNowItem = new BuyNow({
+            productId,
+            quantity,
+            shopId,
+            orderId: generateOrderId(), // Add orderId
+            orderDate: new Date(), // Add orderDate
+            productName: product.name, // Add productName
+            customerId: customerId // Add customerId
+        });
+        await buyNowItem.save();
+
+        res.status(200).json({ message: 'Product purchased successfully' });
+    } catch (error) {
+        console.error('Error buying product:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+// Route to fetch cart items for a user
 
 app.get('/cart/:userId', async (req, res) => {
     const userId = req.params.userId;
@@ -187,10 +263,15 @@ app.get('/cart/:userId/items', async (req, res) => {
     }
 });
 
+
+// Route to update the count of a cart item
+
 app.put('/cart/:itemId/count', async (req, res) => {
     const itemId = req.params.itemId;
     const { count } = req.body;
     try {
+
+        // Find the cart item by its ID and update the count
         const updatedItem = await CartItem.findByIdAndUpdate(itemId, { count }, { new: true });
         if (!updatedItem) {
             return res.status(404).json({ message: 'Cart item not found' });
@@ -202,6 +283,8 @@ app.put('/cart/:itemId/count', async (req, res) => {
     }
 });
 
+
+// Route to delete a cart item
 app.delete('/cart/:itemId', async (req, res) => {
     const itemId = req.params.itemId;
     try {
@@ -219,7 +302,15 @@ app.delete('/cart/:itemId', async (req, res) => {
 app.use("/api/shops", shopRoutes);
 app.use("/api/auth", authRoutes);
 
+
+// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log("Server is running on port ${PORT}");
+    console.log(`Server is running on port ${PORT}`);
 });
+
+// Function to generate unique order ID
+function generateOrderId() {
+    return 'ORDER-' + Math.random().toString(36).substr(2, 9);
+}
+
