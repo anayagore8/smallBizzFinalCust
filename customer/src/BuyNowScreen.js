@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import QuantityCounter from './QuantityCounter';
-// payment....
+
 const BuyNowScreen = ({ userId }) => {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -64,6 +64,7 @@ const BuyNowScreen = ({ userId }) => {
           };
 
           await axios.post('http://localhost:5000/buy-now', paymentData);
+          await axios.post('http://localhost:5000/record-transaction', paymentData); // Record transaction
           console.log('Product bought successfully');
           navigate('/'); // Redirect to home page after buying
         },

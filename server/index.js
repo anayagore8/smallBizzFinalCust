@@ -8,7 +8,7 @@ const Razorpay = require('razorpay');
 const shopRoutes = require("./router/cust");
 const authRoutes = require("./router/auth");
 const User = require('./schema/dataschema.js');
-// payment added....
+// payment added
 
 // Initialize Express
 const app = express();
@@ -106,6 +106,47 @@ const fetchShops = async () => {
 
 // Call fetchShops to fetch data
 fetchShops();
+
+
+
+const transactionSchema = new mongoose.Schema({
+    productId: mongoose.Types.ObjectId,
+    quantity: Number,
+    shopId: mongoose.Types.ObjectId,
+    orderId: String,
+    orderDate: Date,
+    productName: String,
+    customerId: mongoose.Types.ObjectId,
+    orderStatus: { type: String, default: 'completed' }
+}, { timestamps: true }); // Add timestamps for createdAt and updatedAt fields
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+// Route to record a transaction
+app.post('/record-transaction', async (req, res) => {
+    const { productId, quantity, shopId, orderId, productName, customerId } = req.body;
+
+    try {
+        const transaction = new Transaction({
+            productId,
+            quantity,
+            shopId,
+            orderId,
+            orderDate: new Date(),
+            productName,
+            customerId,
+        });
+
+        await transaction.save();
+        res.status(200).json({ message: 'Transaction recorded successfully' });
+    } catch (error) {
+        console.error('Error recording transaction:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+
 
 // Define a route to display all shops
 app.get('/users', async (req, res) => {
