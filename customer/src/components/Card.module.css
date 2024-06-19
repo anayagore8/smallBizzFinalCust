@@ -1,0 +1,43 @@
+/* Card.module.css */
+.card {
+    background-color: #e0f2e9; /* Light green background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border: 1px solid #ccc; /* Grey border */
+    transition: transform 0.3s ease;
+    width: 200px; /* Adjust width as needed */
+    margin: 10px; /* Add margin for spacing between cards */
+  }
+  
+  .card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .card-content {
+    margin-bottom: 10px;
+  }
+  
+  .shop-name {
+    font-size: 16px;
+    color: #007bff; /* Highlighted shop name color */
+    margin-bottom: 5px;
+    font-weight: bold; /* Added font-weight */
+  }
+  
+  .address {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px; /* Added margin bottom */
+  }
+  
+  .shop-link {
+    text-decoration: none;
+    color: #007bff;
+  }
+  
+  .shop-link:hover {
+    text-decoration: none; /* Removed underline on hover */
+    color: #007bff; /* Retained link color on hover */
+  }
+  

@@ -1,0 +1,43 @@
+/* ShopList.module.css */
+.shopListContainer {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .pageTitle {
+    color: #3eb489;
+    background-color: #333; /* Dark grey background color for the header */
+    padding: 30px; /* Add padding to the header */
+  }
+  
+  .searchInput {
+    width: 300px;
+    padding: 10px;
+    margin: 20px auto;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .searchButton {
+    padding: 10px 20px;
+    background-color: #3eb489;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .searchButton:hover {
+    background-color: #33a672;
+  }
+  
+  .cardContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .cardLink {
+    text-decoration: none;
+  }
+  
