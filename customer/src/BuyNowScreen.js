@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import QuantityCounter from './QuantityCounter';
-
+// payment....
 const BuyNowScreen = ({ userId }) => {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -30,60 +30,81 @@ const BuyNowScreen = ({ userId }) => {
     fetchProductDetails();
   }, [productId]);
 
-//   const handleBuyNow = async () => {
-//     try {
-//       const data = {
-//         productId: product._id,
-//         quantity: quantity, // Add quantity to data object
-//         shopId: product.shopId // Add shopId to data object
-//       };
-//       await axios.post('http://localhost:5000/buy-now', data);
-//       console.log('Product bought successfully');
-//       //navigate('/'); // Redirect to home page after buying
-//     } catch (error) {
-//       console.error('Error buying product:', error);
-//     }
-// };
-const handleBuyNow = async () => {
-  try {
-    const data = {
-      orderDate: new Date(), // Add orderDate
-      productName: product.name, // Add productName
-      productId: product._id, // Add productId
-      quantity: quantity, // Add quantity
-      shopId: product.shopId, // Add shopId
-      customerId: userId, // Add customerId
-      orderStatus: 'pending' // Add orderStatus
-    };
-    await axios.post('http://localhost:5000/buy-now/', data);
-    console.log('Product bought successfully');
-    //navigate('/'); // Redirect to home page after buying
-  } catch (error) {
-    console.error('Error buying product:', error);
-  }
-};
+  const handleBuyNow = async () => {
+    try {
+      const orderData = {
+        amount: product.price * quantity * 100, // Razorpay amount in paisa
+        currency: 'INR',
+        receipt: `receipt_${new Date().getTime()}`,
+      };
 
+      // Create order on the server
+      const orderResponse = await axios.post('http://localhost:5000/create-order', orderData);
+      const { orderId } = orderResponse.data;
 
+      const options = {
+        key: 'rzp_test_wvOxIU5j9WDMOH', // Replace with your Razorpay Key ID
+        amount: orderData.amount,
+        currency: 'INR',
+        name: product.name,
+        description: product.description,
+        image: product.image,
+        order_id: orderId,
+        handler: async (response) => {
+          const paymentData = {
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+            productId: product._id,
+            quantity: quantity,
+            shopId: product.shopId,
+            customerId: userId,
+            orderStatus: 'completed',
+            orderDate: new Date(),
+          };
 
-const handleAddToCart = async () => {
-  try {
+          await axios.post('http://localhost:5000/buy-now', paymentData);
+          console.log('Product bought successfully');
+          navigate('/'); // Redirect to home page after buying
+        },
+        prefill: {
+          name: 'Your Customer Name',
+          email: 'customer.email@example.com',
+          contact: '9999999999',
+        },
+        notes: {
+          address: 'Customer Address',
+        },
+        theme: {
+          color: '#F37254',
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error('Error during payment process:', error);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    try {
       const data = {
-          userId: userId,
-          productId: product._id,
-          productName: product.name,
-          price: product.price,
-          description: product.description,
-          quantity: quantity,
-          shopId: product.shopId // Include the shopId here
+        userId: userId,
+        productId: product._id,
+        productName: product.name,
+        price: product.price,
+        description: product.description,
+        quantity: quantity,
+        shopId: product.shopId, // Include the shopId here
       };
       await axios.post('http://localhost:5000/add-to-cart', data);
       console.log('Product added to cart');
       navigate('/cart');
-  } catch (error) {
+    } catch (error) {
       console.error('Error adding product to cart:', error);
-  }
-};
-
+    }
+  };
 
   return (
     <div>

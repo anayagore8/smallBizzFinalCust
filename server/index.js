@@ -3,15 +3,20 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const session = require('express-session');
+const multer = require('multer');
+const Razorpay = require('razorpay');
 const shopRoutes = require("./router/cust");
 const authRoutes = require("./router/auth");
 const User = require('./schema/dataschema.js');
+// payment added....
 
+// Initialize Express
 const app = express();
 
+// Enable CORS
 app.use(cors());
 app.options('*', cors());
-app.use(express.json({ limit: '10mb' })); // Increase limit to handle large base64 images
+app.use(express.json());
 
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://ayushgurav6:Ayush123@smallbizz.rwgr6tg.mongodb.net/test', {
@@ -24,12 +29,42 @@ mongoose.connect('mongodb+srv://ayushgurav6:Ayush123@smallbizz.rwgr6tg.mongodb.n
     process.exit(1);
 });
 
+// Initialize Razorpay
+const razorpay = new Razorpay({
+    key_id: 'rzp_test_wvOxIU5j9WDMOH',
+    key_secret: 'Bo9Y5uh8Uq9x8Uhzx3VHAivw',
+});
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads'); // Upload files to the 'uploads' directory
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname); // Generate unique filename
+    }
+});
+
+// Multer file filter to accept only image files
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true); // Accept the file
+    } else {
+        cb(new Error('Only images are allowed'), false); // Reject the file
+    }
+};
+
+// Initialize multer with the storage and fileFilter configurations
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
 // Define schema for shop collection
 const shopSchema = new mongoose.Schema({
     name: String,
     category: String,
+    // Add more fields as per your data structure
 });
 
+// Define model for shop collection
 const Shop = mongoose.model('Shop', shopSchema);
 
 // Define schema for product collection
@@ -37,25 +72,27 @@ const productSchema = new mongoose.Schema({
     name: String,
     shopId: mongoose.Types.ObjectId,
     quantity: Number,
-   
+    // Add more fields as per your data structure
 });
 
+// Define model for product collection
 const Product = mongoose.model('Product', productSchema);
 
 // Define schema for buy now collection
 const buyNowSchema = new mongoose.Schema({
     productId: mongoose.Types.ObjectId,
-    quantity: Number,
+    quantity: Number, // Ensure quantity is defined as a number
     shopId: mongoose.Types.ObjectId,
-    orderId: String, // Add orderId
-    orderDate: Date, // Add orderDate
-    productName: String, // Add productName
-    customerId: mongoose.Types.ObjectId, // Add customerId
-    orderStatus: { type: String, default: 'pending' } // Add orderStatus with default value
-}, { collection: 'buynows' }); // Set collection name to 'buynow'
+    orderId: String,
+    orderDate: Date,
+    productName: String,
+    customerId: mongoose.Types.ObjectId,
+    orderStatus: { type: String, default: 'pending' }
+});
+ // Set collection name to 'buynow'
 
 // Define model for buy now collection
-const BuyNow = mongoose.model('BuyNow', buyNowSchema);
+const BuyNow = mongoose.model('Buynow', buyNowSchema);
 
 // Fetch all data from shop collection
 const fetchShops = async () => {
@@ -67,9 +104,10 @@ const fetchShops = async () => {
     }
 };
 
+// Call fetchShops to fetch data
 fetchShops();
 
-// Define routes
+// Define a route to display all shops
 app.get('/users', async (req, res) => {
     try {
         const shops = await Shop.find({});
@@ -80,6 +118,7 @@ app.get('/users', async (req, res) => {
     }
 });
 
+// Define a route to display shops by category
 app.get('/users/:category', async (req, res) => {
     const category = req.params.category;
     try {
@@ -91,6 +130,7 @@ app.get('/users/:category', async (req, res) => {
     }
 });
 
+// Modify the route to fetch products by shop ID
 app.get('/shop/:shopId/products', async (req, res) => {
     const shopId = req.params.shopId;
     try {
@@ -102,14 +142,18 @@ app.get('/shop/:shopId/products', async (req, res) => {
     }
 });
 
-app.post('/insert', async (req, res) => {
-    const { shopId, shopName, review, image } = req.body;
+// Inserting reviews 
+app.post('/insert', upload.single('image'), async (req, res) => {
+    const shopId = req.body.shopId;
+    const shopName = req.body.shopName;
+    const review = req.body.review;
+    const image = req.file ? req.file.path : null; // Get the uploaded image path or null if no image is uploaded
 
     const formData = new User({
-        shopId,
+        shopId: shopId,
         name: shopName,
-        review,
-        image // Save base64 image string
+        review: review,
+        image: image // Add image path to the formData
     });
 
     try {
@@ -136,7 +180,6 @@ app.get('/products/:productId', async (req, res) => {
     }
 });
 
-
 // Add middleware for session management
 app.use(session({
     secret: 'c6438a7fe3de5a86596e892c13994a33f7590c5228305aafae981344f059d5b5 ',
@@ -144,9 +187,7 @@ app.use(session({
     saveUninitialized: false
 }));
 
-
 // Define schema for cart collection
-
 const cartSchema = new mongoose.Schema({
     userId: mongoose.Types.ObjectId,
     productId: mongoose.Types.ObjectId,
@@ -158,12 +199,10 @@ const cartSchema = new mongoose.Schema({
     orderStatus: { type: String, default: 'pending' } // Add orderStatus to match BuyNow schema
 });
 
-
-
 // Define model for cart collection
-
 const CartItem = mongoose.model('CartItem', cartSchema);
 
+// Route to add product to cart
 app.post('/add-to-cart', async (req, res) => {
     const { userId, productId, productName, price, description, shopId } = req.body; // Ensure shopId is included in the request
     try {
@@ -184,10 +223,19 @@ app.post('/add-to-cart', async (req, res) => {
 });
 
 
-
 // Route to buy a product
 app.post('/buy-now', async (req, res) => {
     const { productId, quantity, shopId, customerId } = req.body;
+
+// Validate quantity
+const parsedQuantity = parseInt(quantity, 10);
+console.log('hiiie1');
+ if (isNaN(parsedQuantity)) {
+    console.log('hiiie2');
+    return res.status(400).json({ message: 'Quantity is not a valid number' });
+}
+
+
 
     try {
         // Find the product in the database by productId
@@ -198,12 +246,12 @@ app.post('/buy-now', async (req, res) => {
         }
 
         // Check if there are enough products in stock
-        if (product.quantity < quantity) {
+        if (product.quantity < parsedQuantity) {
             return res.status(400).json({ message: 'Not enough products in stock' });
         }
 
         // Reduce the product quantity by the purchased quantity
-        product.quantity -= quantity;
+        product.quantity -= parsedQuantity;
 
         // Save the updated product
         await product.save();
@@ -213,12 +261,13 @@ app.post('/buy-now', async (req, res) => {
             productId,
             quantity,
             shopId,
-            orderId: generateOrderId(), // Add orderId
-            orderDate: new Date(), // Add orderDate
-            productName: product.name, // Add productName
-            customerId: customerId // Add customerId
+            orderId: generateOrderId(),
+            orderDate: new Date(),
+            productName: product.name,
+            customerId,
         });
         await buyNowItem.save();
+        
 
         res.status(200).json({ message: 'Product purchased successfully' });
     } catch (error) {
@@ -227,9 +276,18 @@ app.post('/buy-now', async (req, res) => {
     }
 });
 
+// Route to create an order for Razorpay
+app.post('/create-order', async (req, res) => {
+    const { amount, currency, receipt } = req.body;
+    try {
+        const order = await razorpay.orders.create({ amount, currency, receipt });
+        res.json({ orderId: order.id });
+    } catch (error) {
+        res.status(500).send('Error creating order');
+    }
+});
 
 // Route to fetch cart items for a user
-
 app.get('/cart/:userId', async (req, res) => {
     const userId = req.params.userId;
     try {
@@ -241,6 +299,7 @@ app.get('/cart/:userId', async (req, res) => {
     }
 });
 
+// Route to count total number of cart items for a user
 app.get('/cart/:userId/count', async (req, res) => {
     const userId = req.params.userId;
     try {
@@ -263,14 +322,11 @@ app.get('/cart/:userId/items', async (req, res) => {
     }
 });
 
-
 // Route to update the count of a cart item
-
 app.put('/cart/:itemId/count', async (req, res) => {
     const itemId = req.params.itemId;
     const { count } = req.body;
     try {
-
         // Find the cart item by its ID and update the count
         const updatedItem = await CartItem.findByIdAndUpdate(itemId, { count }, { new: true });
         if (!updatedItem) {
@@ -283,11 +339,11 @@ app.put('/cart/:itemId/count', async (req, res) => {
     }
 });
 
-
 // Route to delete a cart item
 app.delete('/cart/:itemId', async (req, res) => {
     const itemId = req.params.itemId;
     try {
+        // Delete the cart item by its ID
         const deletedItem = await CartItem.findByIdAndDelete(itemId);
         if (!deletedItem) {
             return res.status(404).json({ message: 'Cart item not found' });
@@ -302,7 +358,6 @@ app.delete('/cart/:itemId', async (req, res) => {
 app.use("/api/shops", shopRoutes);
 app.use("/api/auth", authRoutes);
 
-
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
@@ -313,4 +368,3 @@ app.listen(PORT, () => {
 function generateOrderId() {
     return 'ORDER-' + Math.random().toString(36).substr(2, 9);
 }
-
