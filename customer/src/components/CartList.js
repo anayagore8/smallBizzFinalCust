@@ -21,7 +21,7 @@ function CartList({ userId }) {
   }, [userId]);
 
   const handleCountUpdate = (itemId, newCount) => {
-    axios.put(`http://localhost:5000/cart/${itemId}/count`, { count: newCount })
+    axios.put(`http://localhost:5000/cart/${itemId}/count, { count: newCount }`)
       .then(response => {
         if (newCount === 0) {
           handleDeleteItem(itemId);

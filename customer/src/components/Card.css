@@ -1,3 +1,4 @@
+/* Card.module.css */
 .card {
   background-color: #ffffff;
   border-radius: 8px;
@@ -6,6 +7,8 @@
   margin-bottom: 16px;
   border: 1px solid #ddd; /* Grey border */
   transition: transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .card:hover {
@@ -16,6 +19,8 @@
   border-bottom: 1px solid #ddd;
   margin-bottom: 12px;
   padding-bottom: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .card-header h2 {
@@ -32,6 +37,8 @@
 
 .card-body {
   padding: 12px 0;
+  position: relative;
+  z-index: 1;
 }
 
 .address, .mobile {
@@ -41,11 +48,6 @@
 }
 
 /* Custom styles for added visual appeal */
-.card {
-  position: relative;
-  overflow: hidden;
-}
-
 .card:before {
   content: '';
   position: absolute;
@@ -61,14 +63,4 @@
 
 .card:hover:before {
   opacity: 1;
-}
-
-.card-header {
-  position: relative;
-  z-index: 1;
-}
-
-.card-body {
-  position: relative;
-  z-index: 1;
 }

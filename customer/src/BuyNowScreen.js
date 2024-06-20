@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import QuantityCounter from './QuantityCounter';
-import UserDetailsForm from './UserDetailsForm'; // Assuming you have this component as well
+import UserDetailsForm from './UserDetailsForm';
+import styles from './BuyNowScreen.module.css';
 
 const BuyNowScreen = ({ userId }) => {
   const { productId } = useParams();
@@ -45,17 +46,16 @@ const BuyNowScreen = ({ userId }) => {
   const handleBuyNow = async (details) => {
     try {
       const orderData = {
-        amount: product.price * quantity * 100, // Razorpay amount in paisa
+        amount: product.price * quantity * 100,
         currency: 'INR',
         receipt: `receipt_${new Date().getTime()}`,
       };
 
-      // Create order on the server
       const orderResponse = await axios.post('http://localhost:5000/create-order', orderData);
       const { orderId } = orderResponse.data;
 
       const options = {
-        key: 'rzp_test_wvOxIU5j9WDMOH', // Replace with your Razorpay Key ID
+        key: 'rzp_test_wvOxIU5j9WDMOH',
         amount: orderData.amount,
         currency: 'INR',
         name: product.name,
@@ -84,23 +84,20 @@ const BuyNowScreen = ({ userId }) => {
             email: details.email,
             contact: details.contact,
           };
-          try{
-            await axios.post('http://localhost:5000/buy-now', paymentData);
-            console.log('Buy done')
-          }
-          catch(error){
-            console.log("failedto call buy now");
-          }
-          try{
-          await axios.post('http://localhost:5000/record-transaction', paymentData); // Record transaction
-          console.log('Product bought successfully');
-          
-          }
-          catch(error){
-            console.log("failedto dobuy now");
 
+          try {
+            await axios.post('http://localhost:5000/buy-now', paymentData);
+            console.log('Buy done');
+          } catch (error) {
+            console.log("Failed to call buy now", error);
           }
-          navigate(`/buy-now/${productId}`); // Redirect to home page after buying
+          try {
+            await axios.post('http://localhost:5000/record-transaction', paymentData);
+            console.log('Product bought successfully');
+          } catch (error) {
+            console.log("Failed to record transaction", error);
+          }
+          navigate(`/buy-now/${productId}`);
         },
         prefill: {
           name: details.customerName,
@@ -131,7 +128,7 @@ const BuyNowScreen = ({ userId }) => {
         price: product.price,
         description: product.description,
         quantity: quantity,
-        shopId: product.shopId, // Include the shopId here
+        shopId: product.shopId,
       };
       await axios.post('http://localhost:5000/add-to-cart', data);
       console.log('Product added to cart');
@@ -142,22 +139,30 @@ const BuyNowScreen = ({ userId }) => {
   };
 
   return (
-    <div>
+    <div className={styles.container}>
       {loading ? (
         <p>Loading...</p>
       ) : product ? (
-        <div>
-          <h1>{product.name}</h1>
-          <p>Description: {product.description}</p>
-          <img src={product.image} alt={product.name} />
-          <p>Price: {product.price}</p>
-          <QuantityCounter
-            quantity={quantity}
-            onChange={(newQuantity) => setQuantity(newQuantity)}
-          />
-          <button onClick={handleBuyNowClick}>Buy Now</button>
-          <button onClick={handleAddToCart}>Add to Cart</button>
-          {showForm && <UserDetailsForm onSubmit={handleFormSubmit} />}
+        <div className={styles.productDisplay}>
+          <div className={styles.imageContainer}>
+            <img src={product.image} alt={product.name} className={styles.productImage} />
+          </div>
+          <div className={styles.detailsContainer}>
+            <h1 className={styles.productName}>{product.name}</h1>
+            <p className={styles.productDescription}>{product.description}</p>
+            <p className={styles.productPrice}>Price: ₹{product.price}</p>
+            <div className={styles.quantityCounter}>
+              <QuantityCounter
+                quantity={quantity}
+                onChange={(newQuantity) => setQuantity(newQuantity)}
+              />
+            </div>
+            <div className={styles.buttons}>
+              <button className={styles.buyButton} onClick={handleBuyNowClick}>Buy Now</button>
+              <button className={styles.cartButton} onClick={handleAddToCart}>Add to Cart</button>
+            </div>
+            {showForm && <UserDetailsForm onSubmit={handleFormSubmit} />}
+          </div>
         </div>
       ) : (
         <p>No product found</p>

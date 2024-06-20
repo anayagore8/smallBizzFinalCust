@@ -6,7 +6,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #333;
+  background-color:#7c3b9f; /* Dark purple color */
   padding: 10px 20px;
   color: white;
   border-radius: 8px;
@@ -14,8 +14,8 @@
 }
 
 .navbar button {
-  background-color: #6a0dad; /* Dark purple color */
-  color: white;
+  background-color: white; /* Dark purple color */
+  color: black;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -37,11 +37,13 @@
 }
 
 .productCard {
-  background-color: #f0f4f8; /* Light grey background color for cards */
+  background-color: #d0c3f1; /* Lavender background color for cards */
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
 .productCard:hover {
@@ -57,9 +59,9 @@
 }
 
 .productCard h3 {
-  color: white; /* Black font color for heading */
-  background-color: #6a0dad; /* Dark purple background color for heading */
-  padding: 10px; /* Add padding to heading */
+  color: #fff; /* White text color */
+  background-color: #7c3b9f; /* Dark purple background color for heading */
+  padding: 12px; /* Add padding to heading */
   border-top-left-radius: 8px; /* Rounded corners for top left and right of heading */
   border-top-right-radius: 8px;
   margin: 0 -20px 20px -20px; /* Negative margin to overlap */
@@ -68,6 +70,17 @@
 
 .productCard p {
   margin: 10px 0; /* Add margin for paragraphs */
+  color: #7c3b9f; /* Dark purple text color */
+  text-align: center; /* Center align paragraphs */
+  overflow: hidden; /* Hide overflow text */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Limit number of lines */
+  -webkit-box-orient: vertical;
+  height: 3.6em; /* Adjust height to display three lines of text */
+}
+
+.productCard:hover p {
+  height: auto; /* Show full description on hover */
 }
 
 .error {
