@@ -1,16 +1,9 @@
-const mongoose = require('mongoose');
-
 const shopSchema = new mongoose.Schema({
-  name: String,
-  category: String,
-  email: String,
-  address: {
-    street: String,
-    city: String,
-    state: String,
-    country: String,
-    zipcode: String
-  }
+  name: { type: String },
+  email: { type: String },
+  password: { type: String },
+  mobileNo: { type: Number },
+  landmark: { type: String },
+  city: { type: String },
+  state: { type: String }
 });
-
-module.exports = mongoose.model('Shop', shopSchema);

@@ -4,7 +4,7 @@ import styles from './ProductList.module.css'; // Import CSS module
 import ReviewForm from './components/ReviewForm';
 
 const ProductList = () => {
-  const { shopId } = useParams(); // Get shopId from URL params
+  const { shopId, userId } = useParams(); // Get shopId and userId from URL params
   const [shop, setShop] = useState(null);  
   const [products, setProducts] = useState([]);
   const [error, setError] = useState(null);
@@ -50,21 +50,26 @@ const ProductList = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Products</h1>
-      <button onClick={() => setShowReviewForm(!showReviewForm)}>
-        {showReviewForm ? 'Close Reviews' : 'Add Reviews'}
-      </button>
-      {error && <div>Error: {error}</div>}
-      <div className={styles.productContainer}> {/* Use CSS module class */}
+    <div className={styles.container}>
+      <nav className={styles.navbar}>
+        <div className={styles.navLeft}>
+          <h1>Products</h1>
+          <p>User ID: {userId}</p> {/* Display user ID */}
+        </div>
+        <button onClick={() => setShowReviewForm(!showReviewForm)}>
+          {showReviewForm ? 'Close Reviews' : 'Add Reviews'}
+        </button>
+      </nav>
+      {error && <div className={styles.error}>Error: {error}</div>}
+      <div className={styles.productContainer}>
         {products.map(product => (
-          <div className={styles.productCard} key={product._id}> {/* Use CSS module class */}
+          <div className={styles.productCard} key={product._id}>
+            {product.image && <img src={product.image} alt={product.name} />}
             <Link to={`/buy-now/${product._id}`} key={product._id}>
               <h3>{product.name}</h3>
             </Link>
             <p>Price: {product.price}</p>
             <p>Description: {product.description}</p>
-            {product.image && <img src={product.image} alt={product.name} />} {/* Display image if available */}
           </div>
         ))}
       </div>

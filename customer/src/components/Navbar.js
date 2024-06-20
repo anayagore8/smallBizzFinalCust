@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Typography, IconButton } from "@mui/material";
-import { AccountCircle, ShoppingBasket } from "@mui/icons-material";
-import { Link } from "react-router-dom";
+import { AppBar, Toolbar, Typography, IconButton } from '@mui/material';
+import { AccountCircle, ShoppingBasket } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 function Navbar({ userId }) {
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/profile/users/${userId}`);
+        setUser(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        setError('Error fetching user details. Please try again later.');
+        setLoading(false);
+      }
+    };
+
     if (userId) {
-      // Fetch number of items in the cart for the user
-      axios.get(`http://localhost:5000/cart/${userId}/count`)
-        .then(response => {
-          setCartItemCount(response.data.count);
-        })
-        .catch(error => {
-          console.error('Error fetching cart item count:', error);
-        });
+      fetchUserDetails();
     }
   }, [userId]);
 
@@ -27,6 +34,7 @@ function Navbar({ userId }) {
           Small BiZZ
         </Typography>
         <div>
+          {/* Link to Cart */}
           <IconButton
             size="large"
             edge="end"
@@ -34,21 +42,21 @@ function Navbar({ userId }) {
             component={Link}
             to="/cart"
           >
-            {cartItemCount > 0 && <span style={{ marginRight: 5 }}>{cartItemCount}</span>}
             <ShoppingBasket />
-            
           </IconButton>
+          {/* Link to Profile */}
           <IconButton
             size="large"
             edge="end"
             color="inherit"
             component={Link}
-            to="/profile"
+            to="/profile" // Adjusted to match your route
           >
             <AccountCircle />
           </IconButton>
+          {/* Display user info or loading/error message */}
           <Typography variant="body1" sx={{ ml: 1 }}>
-            {/* {userId ? `User ID: ${userId}` : 'Not logged in'} */}
+            {loading ? 'Loading...' : (`error ? 'Error fetching user details' : Welcome, ${user ? user.name : 'Guest'}`)}
           </Typography>
         </div>
       </Toolbar>

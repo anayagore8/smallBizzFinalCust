@@ -1,6 +1,8 @@
+/* Adjusted styles for better spacing and larger input fields */
+
 .signup_container {
     width: 100%;
-    min-height: 100vh;
+    min-height: 100vh; /* Adjusted min-height */
     background-color: #f5f5f5;
     display: flex;
     align-items: center;
@@ -8,8 +10,8 @@
 }
 
 .signup_form_container {
-    width: 900px;
-    height: 500px;
+    width: 800px;
+    height: auto;
     display: flex;
     border-radius: 10px;
     box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
@@ -24,12 +26,14 @@
     background-color: #3bb19b;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
+    padding: 20px;
 }
 
 .left h1 {
     margin-top: 0;
     color: white;
     font-size: 35px;
+    text-align: center;
 }
 
 .right {
@@ -41,48 +45,43 @@
     background-color: white;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
+    padding: 20px;
 }
 
 .form_container {
-    display: flex;
-    flex-direction: row;
-    /* Change to row */
-    align-items: center;
-    justify-content: space-between;
-    /* Distribute items evenly */
-    flex-wrap: wrap;
-    /* Allow items to wrap to the next line */
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 
 .form_container h1 {
-    font-size: 40px;
-    margin-left: 150px;
-    margin-bottom: 30px;
+    font-size: 25px;
+    margin-bottom: 20px;
+    grid-column: span 2;
+    text-align: center;
 }
 
 .input {
     outline: none;
     border: none;
-    width: calc(51% - 60px);
-    /* Adjust width for two columns */
-    padding: 15px;
+    width: calc(100% - 30px); /* Adjusted width to accommodate padding */
+    padding: 15px; /* Increased padding for larger input size */
     border-radius: 10px;
     background-color: #edf5f3;
-    margin: 5px 0;
-    font-size: 14px;
-    margin-right: 25px;
-    margin-left: 25px;
+    font-size: 16px; /* Increased font size for better readability */
 }
 
 .error_msg {
-    width: 370px;
-    padding: 15px;
-    margin: 5px 0;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
     font-size: 14px;
     background-color: #f34646;
     color: white;
     border-radius: 5px;
     text-align: center;
+    grid-column: span 2;
 }
 
 .white_btn,
@@ -90,12 +89,12 @@
     margin-top: 20px;
     border: none;
     outline: none;
-    padding: 12px 0;
+    padding: 15px 0; /* Increased padding for buttons */
     background-color: white;
-    border-radius: 20px;
+    border-radius: 25px; /* Adjusted border radius for buttons */
     width: 180px;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px; /* Increased font size for buttons */
     cursor: pointer;
 }
 
@@ -103,6 +102,6 @@
     background-color: #3bb19b;
     color: white;
     margin: 10px;
-    margin-top: 40px;
-    margin-left: 210px;
+    align-self: center;
+    grid-column: span 2;
 }
