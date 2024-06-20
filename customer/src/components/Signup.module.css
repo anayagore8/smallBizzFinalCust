@@ -26,18 +26,18 @@
     background-color: #3bb19b;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
-    padding: 20px;
+    padding: 20px; /* Added padding for better spacing */
 }
 
 .left h1 {
     margin-top: 0;
     color: white;
     font-size: 35px;
-    text-align: center;
+    text-align: center; /* Center text alignment */
 }
 
 .right {
-    flex: 2;
+    flex: 2; /* Adjusted flex to provide more space for form */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -45,24 +45,25 @@
     background-color: white;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
-    padding: 20px;
+    padding: 20px; /* Added padding for better spacing */
 }
 
 .form_container {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 20px; /* Gap between grid items */
 }
 
 .form_container h1 {
-    font-size: 25px;
+    font-size: 25px; /* Adjusted font size to match the login form */
     margin-bottom: 20px;
-    grid-column: span 2;
-    text-align: center;
+    grid-column: span 2; /* Span header across both columns */
+    text-align: center; /* Center text alignment */
 }
 
 .input {
+    margin:0px 15px 0px 15px;
     outline: none;
     border: none;
     width: calc(100% - 30px); /* Adjusted width to accommodate padding */
@@ -75,13 +76,13 @@
 .error_msg {
     width: 100%;
     padding: 10px;
-    margin: 10px 0;
+    margin: 10px 0; /* Increased margin for better spacing */
     font-size: 14px;
     background-color: #f34646;
     color: white;
     border-radius: 5px;
     text-align: center;
-    grid-column: span 2;
+    grid-column: span 2; /* Span error message across both columns */
 }
 
 .white_btn,
@@ -102,6 +103,6 @@
     background-color: #3bb19b;
     color: white;
     margin: 10px;
-    align-self: center;
-    grid-column: span 2;
+    align-self: center; /* Center the button */
+    grid-column: span 2; /* Span button across both columns */
 }
