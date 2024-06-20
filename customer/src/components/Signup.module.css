@@ -1,6 +1,6 @@
 .signup_container {
     width: 100%;
-    min-height: 100vh;
+    min-height: 102vh;
     background-color: #f5f5f5;
     display: flex;
     align-items: center;
@@ -8,8 +8,8 @@
 }
 
 .signup_form_container {
-    width: 900px;
-    height: 500px;
+    width: 800px; /* Adjusted width to match the login form */
+    height: auto; /* Allow height to adjust based on content */
     display: flex;
     border-radius: 10px;
     box-shadow: 0px 3px 3px -2px rgb(0 0 0 / 20%), 0px 3px 4px 0px rgb(0 0 0 / 14%), 0px 1px 8px 0px rgb(0 0 0 / 12%);
@@ -24,16 +24,18 @@
     background-color: #3bb19b;
     border-top-left-radius: 10px;
     border-bottom-left-radius: 10px;
+    padding: 20px; /* Added padding for better spacing */
 }
 
 .left h1 {
     margin-top: 0;
     color: white;
     font-size: 35px;
+    text-align: center; /* Center text alignment */
 }
 
 .right {
-    flex: 2;
+    flex: 2; /* Adjusted flex to provide more space for form */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -41,48 +43,44 @@
     background-color: white;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
+    padding: 20px; /* Added padding for better spacing */
 }
 
 .form_container {
-    display: flex;
-    flex-direction: row;
-    /* Change to row */
-    align-items: center;
-    justify-content: space-between;
-    /* Distribute items evenly */
-    flex-wrap: wrap;
-    /* Allow items to wrap to the next line */
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px; /* Gap between grid items */
 }
 
 .form_container h1 {
-    font-size: 40px;
-    margin-left: 150px;
-    margin-bottom: 30px;
+    font-size: 25px; /* Adjusted font size to match the login form */
+    margin-bottom: 20px;
+    grid-column: span 2; /* Span header across both columns */
+    text-align: center; /* Center text alignment */
 }
 
 .input {
+    margin:0px 15px 0px 15px;
     outline: none;
     border: none;
-    width: calc(51% - 60px);
-    /* Adjust width for two columns */
-    padding: 15px;
+    width: 100%;
+    padding: 10px;
     border-radius: 10px;
     background-color: #edf5f3;
-    margin: 5px 0;
     font-size: 14px;
-    margin-right: 25px;
-    margin-left: 25px;
 }
 
 .error_msg {
-    width: 370px;
-    padding: 15px;
-    margin: 5px 0;
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0; /* Increased margin for better spacing */
     font-size: 14px;
     background-color: #f34646;
     color: white;
     border-radius: 5px;
     text-align: center;
+    grid-column: span 2; /* Span error message across both columns */
 }
 
 .white_btn,
@@ -103,6 +101,6 @@
     background-color: #3bb19b;
     color: white;
     margin: 10px;
-    margin-top: 40px;
-    margin-left: 210px;
+    align-self: center; /* Center the button */
+    grid-column: span 2; /* Span button across both columns */
 }

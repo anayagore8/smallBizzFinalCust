@@ -8,7 +8,6 @@ const Razorpay = require('razorpay');
 const shopRoutes = require("./router/cust");
 const authRoutes = require("./router/auth");
 const User = require('./schema/dataschema.js');
-// payment added
 
 // Initialize Express
 const app = express();
@@ -87,9 +86,15 @@ const buyNowSchema = new mongoose.Schema({
     orderDate: Date,
     productName: String,
     customerId: mongoose.Types.ObjectId,
-    orderStatus: { type: String, default: 'pending' }
+    orderStatus: { type: String, default: 'pending' },
+    customerName: String, // New fields
+    address: String,
+    city: String,
+    state: String,
+    pincode: String,
+    email: String,
+    contact: String
 });
- // Set collection name to 'buynow'
 
 // Define model for buy now collection
 const BuyNow = mongoose.model('Buynow', buyNowSchema);
@@ -107,24 +112,23 @@ const fetchShops = async () => {
 // Call fetchShops to fetch data
 fetchShops();
 
-
-
 const transactionSchema = new mongoose.Schema({
-    productId: mongoose.Types.ObjectId,
-    quantity: Number,
-    shopId: mongoose.Types.ObjectId,
-    orderId: String,
-    orderDate: Date,
-    productName: String,
-    customerId: mongoose.Types.ObjectId,
-    orderStatus: { type: String, default: 'completed' }
+    productId: { type: mongoose.Types.ObjectId, required: true },
+    quantity: { type: Number, required: true },
+    shopId: { type: mongoose.Types.ObjectId, required: true },
+    orderId: { type: String, required: true },
+    amount: { type: Number, required: true },
+    orderDate: { type: Date, required: true },
+    productName: { type: String, required: true },
+    customerId: { type: mongoose.Types.ObjectId, required: true },
+    orderStatus: { type: String, default: 'completed', required: true }
 }, { timestamps: true }); // Add timestamps for createdAt and updatedAt fields
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
 // Route to record a transaction
 app.post('/record-transaction', async (req, res) => {
-    const { productId, quantity, shopId, orderId, productName, customerId } = req.body;
+    const { productId, quantity, shopId, orderId, productName, customerId, amount } = req.body;
 
     try {
         const transaction = new Transaction({
@@ -135,6 +139,7 @@ app.post('/record-transaction', async (req, res) => {
             orderDate: new Date(),
             productName,
             customerId,
+            amount,
         });
 
         await transaction.save();
@@ -144,9 +149,6 @@ app.post('/record-transaction', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
-
-
 
 // Define a route to display all shops
 app.get('/users', async (req, res) => {
@@ -263,52 +265,20 @@ app.post('/add-to-cart', async (req, res) => {
     }
 });
 
-
 // Route to buy a product
 app.post('/buy-now', async (req, res) => {
-    const { productId, quantity, shopId, customerId } = req.body;
-
-// Validate quantity
-const parsedQuantity = parseInt(quantity, 10);
-console.log('hiiie1');
- if (isNaN(parsedQuantity)) {
-    console.log('hiiie2');
-    return res.status(400).json({ message: 'Quantity is not a valid number' });
-}
-
-
-
     try {
-        // Find the product in the database by productId
-        const product = await Product.findById(productId);
-
-        if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
-        }
-
-        // Check if there are enough products in stock
-        if (product.quantity < parsedQuantity) {
-            return res.status(400).json({ message: 'Not enough products in stock' });
-        }
-
-        // Reduce the product quantity by the purchased quantity
-        product.quantity -= parsedQuantity;
-
-        // Save the updated product
-        await product.save();
-
-        // Add the purchase to the buy now collection
-        const buyNowItem = new BuyNow({
-            productId,
-            quantity,
-            shopId,
-            orderId: generateOrderId(),
-            orderDate: new Date(),
-            productName: product.name,
-            customerId,
-        });
-        await buyNowItem.save();
+        // Create a new BuyNow document using the data from req.body
+        const product = new BuyNow(req.body);
         
+        // Validate quantity
+        const parsedQuantity = parseInt(req.body.quantity, 10);
+        if (isNaN(parsedQuantity)) {
+            return res.status(400).json({ message: 'Quantity is not a valid number' });
+        }
+
+        // Save the new BuyNow document to the database
+        await product.save();
 
         res.status(200).json({ message: 'Product purchased successfully' });
     } catch (error) {
@@ -316,6 +286,8 @@ console.log('hiiie1');
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+
 
 // Route to create an order for Razorpay
 app.post('/create-order', async (req, res) => {
