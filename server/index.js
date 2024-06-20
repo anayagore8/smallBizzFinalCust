@@ -8,6 +8,7 @@ const Razorpay = require('razorpay');
 const shopRoutes = require("./router/cust");
 const authRoutes = require("./router/auth");
 const User = require('./schema/dataschema.js');
+const { Customer, validate } = require('./models/shop');
 
 // Initialize Express
 const app = express();
@@ -365,6 +366,22 @@ app.delete('/cart/:itemId', async (req, res) => {
     } catch (error) {
         console.error("Error deleting cart item:", error);
         res.status(500).send("Internal Server Error");
+    }
+});
+app.get('/profile/users/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        console.log("Received request for user profile with ID:", userId);
+        const user = await Customer.findById(userId);
+        if (!user) {
+            console.log("User not found with ID:", userId);
+            return res.status(404).json({ message: 'User not found' });
+        }
+        console.log("User found:", user);
+        res.json(user);
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
