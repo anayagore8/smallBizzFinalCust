@@ -1,57 +1,102 @@
-import React, { useState } from 'react';
-import Cards from './Cards';
-import { fetchShopDataByCategory } from '../service/api';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
-import foodImage from './food.jpg';
-import eCom from './ecomm.jpg';
-import Retail from './retail.jpg'
-import Manuf from './manu.jpg'
-import Finance from './finance.jpg'
-import Health from './healthcare.jpg'
-import Tech from './tech.jpg'
-import Agric from './agri.jpg'
-import Tourism from './tour.jpg'
-import Edu from './edu.jpg'
-import RealEstate from './real.jpg'
-import Serv from './services.jpg'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Counter from './Counter';
+import './cartItem.css';
+import QuantityCounter from '../QuantityCounter';
 
-const Cardlist = () => {
-  const [error, setError] = useState(null);
-  const navigate = useNavigate(); // Use useNavigate hook to navigate programmatically
+function CartList({ userId }) {
+  const [cartItems, setCartItems] = useState([]);
+  const [quantity, setQuantity] = useState(1);
 
-  const handleCardClick = async (category) => {
-    try {
-      const data = await fetchShopDataByCategory(category);
-      // Navigate to the shop-list route with the fetched category
-      navigate(`/shop-list/${category}`);
-    } catch (error) {
-      console.error('Error fetching shop data:', error);
-      setError('Failed to fetch shop data. Please try again later.');
+  useEffect(() => {
+    if (userId) {
+      axios.get(`http://localhost:5000/cart/${userId}/items`)
+        .then(response => {
+          setCartItems(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching cart items:', error);
+        });
     }
+  }, [userId]);
+
+  const handleCountUpdate = (itemId, newCount) => {
+    axios.put(`http://localhost:5000/cart/${itemId}/count`, { count: newCount })
+      .then(response => {
+        if (newCount === 0) {
+          handleDeleteItem(itemId);
+        } else {
+          setCartItems(prevItems => {
+            const updatedItems = prevItems.map(item => {
+              if (item._id === itemId) {
+                return { ...item, count: newCount };
+              }
+              return item;
+            });
+            return updatedItems;
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error updating count:', error);
+      });
   };
 
-  const products = [
-    { id: 1, name: 'Retail', image: Retail },
-    { id: 2, name: 'Food and Beverage', image: foodImage },
-    { id: 3, name: 'Services', image: Serv },
-    { id: 4, name: 'E-commerce', image: eCom },
-    { id: 5, name: 'Healthcare', image: Health },
-    { id: 6, name: 'Technology', image: Tech },
-    { id: 7, name: 'Manufacturing', image: Manuf},
-    { id: 8, name: 'Agriculture and Agribusiness', image: Agric },
-    { id: 9, name: 'Tourism and Hosptality', image: Tourism},
-    { id: 10, name: 'Education and Training', image: Edu },
-    { id: 11, name: 'Financial Services', image: Finance },
-    { id: 12, name: 'Real Estate', image: RealEstate },
-    
-  ];
+  const handleDeleteItem = (itemId) => {
+    axios.delete(`http://localhost:5000/cart/${itemId}`)
+      .then(response => {
+        setCartItems(prevItems => prevItems.filter(item => item._id !== itemId));
+      })
+      .catch(error => {
+        console.error('Error deleting item:', error);
+      });
+  };
+
+  const handleBuyNow = async (productId) => {
+    try {
+      const product = cartItems.find(item => item.productId === productId);
+      const data = {
+        orderDate: new Date(),
+        productName: product.productName,
+        productId: product.productId,
+        quantity: product.count,
+        shopId: product.shopId,
+        customerId: userId,
+        orderStatus: 'pending'
+      };
+      await axios.post('http://localhost:5000/buy-now', data);
+      console.log('Product bought successfully');
+      
+      // Clear the particular product from the cart items state
+      setCartItems(prevItems => prevItems.filter(item => item._id !== product._id));
+    } catch (error) {
+      console.error('Error buying product:', error);
+    }
+  };
+  
 
   return (
-    <>
-      <Cards products={products} handleCardClick={handleCardClick} />
-      {error && <div>Error: {error}</div>}
-    </>
+    <div>
+      <h1>Cart Items</h1>
+      <div className="cart-container">
+        {cartItems.map(item => (
+          <div className="card" key={item._id}>
+            <h3>{item.productName}</h3>
+            <p>Price: {item.price}</p>
+            <p>Description: {item.description}</p>
+            {/* <Counter initialValue={item.count} onUpdate={newCount => handleCountUpdate(item._id, newCount)} /> */}
+            <QuantityCounter
+            quantity={quantity}
+            onChange={(newQuantity) => setQuantity(newQuantity)}
+          />
+            <p>Count in Cart: {item.count}</p>
+            <button onClick={() => handleDeleteItem(item._id)}>Delete</button>
+            <button onClick={() => handleBuyNow(item.productId)}>Buy Now</button>
+          </div>
+        ))}
+      </div>
+    </div>
   );
-};
+}
 
-export default Cardlist;
+export default CartList;
